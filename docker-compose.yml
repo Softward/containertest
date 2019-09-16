@@ -1,0 +1,33 @@
+version: "3"
+services:
+  portainer:
+    container_name: portainer
+    labels:
+      - "traefik.frontend.rule=Host:portainer.networkoftime.com"
+      - "traefik.port=9000"
+      - "traefik.enable=true"
+    restart: always
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "portainer_data:/data"
+    image: portainer/portainer
+
+  # TODO: https://docs.traefik.io/user-guide/docker-and-lets-encrypt/
+  traefik:
+    image: traefik # The official Traefik docker image
+    container_name: traefik
+    labels:
+      - "traefik.frontend.rule=Host:traefik.networkoftime.com"
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+    command: --api --docker # Enables the web UI and tells Traefik to listen to docker
+    ports:
+      - "80:80" # The HTTP port
+      - "443:443" # The HTTPS port
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
+      - ./traefik.toml:/traefik.toml
+      - ./acme/acme.json:/acme.json
+
+volumes:
+  portainer_data:
